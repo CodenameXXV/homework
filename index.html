@@ -50,13 +50,49 @@
             font-size: 14px;
         }
         
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
         input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 12px 50px 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 15px;
             transition: border-color 0.3s;
+        }
+        
+        .voice-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            width: auto;
+            flex: none;
+        }
+        
+        .voice-btn:hover {
+            background: #f0f0f0;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .voice-btn.recording {
+            color: #f44336;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         input:focus {
@@ -181,13 +217,19 @@
         
         <div class="input-group">
             <label for="input1">Рівень 1:</label>
-            <input type="text" id="input1" placeholder="Почніть вводити завдання...">
+            <div class="input-wrapper">
+                <input type="text" id="input1" placeholder="Почніть вводити завдання..." spellcheck="true" lang="uk">
+                <button class="voice-btn" onclick="startVoiceInput('input1')" title="Голосове введення">🎤</button>
+            </div>
             <div class="suggestions" id="suggestions1"></div>
         </div>
         
         <div class="input-group">
             <label for="input2">Рівень 2:</label>
-            <input type="text" id="input2" placeholder="Почніть вводити завдання...">
+            <div class="input-wrapper">
+                <input type="text" id="input2" placeholder="Почніть вводити завдання..." spellcheck="true" lang="uk">
+                <button class="voice-btn" onclick="startVoiceInput('input2')" title="Голосове введення">🎤</button>
+            </div>
             <div class="suggestions" id="suggestions2"></div>
         </div>
         
@@ -339,7 +381,7 @@
             });
         }
 
-        // --- Решта функцій (без змін) ---
+        // --- Решта функцій ---
         function generateHomework() {
             const input1 = document.getElementById('input1').value.trim();
             const input2 = document.getElementById('input2').value.trim();
