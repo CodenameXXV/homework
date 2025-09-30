@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор домашнього завдання</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .suggestions.show {
+            display: block;
+        }
+        
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        .suggestion-item:hover,
+        .suggestion-item.selected {
+            background: #eef4ff;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .copy-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .clear-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result-text {
+            color: #333;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Запис домашнього завдання</h1>
+        
+        <div class="input-group">
+            <label for="input1">Рівень 1:</label>
+            <input type="text" id="input1" placeholder="Почніть вводити завдання...">
+            <div class="suggestions" id="suggestions1"></div>
+        </div>
+        
+        <div class="input-group">
+            <label for="input2">Рівень 2:</label>
+            <input type="text" id="input2" placeholder="Почніть вводити завдання...">
+            <div class="suggestions" id="suggestions2"></div>
+        </div>
+        
+        <div class="button-group">
+            <button class="generate-btn" onclick="generateHomework()">Створити завдання</button>
+            <button class="copy-btn" onclick="copyToClipboard()">📋 Копіювати</button>
+            <button class="clear-btn" onclick="clearAll()">🗑️ Очистити</button>
+        </div>
+        
+        <div class="result" id="result">
+            <div class="result-text" id="resultText"></div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Скопійовано!</div>
+    
+    <script>
+        // Список шаблонів (ваші, в алфавітному порядку)
+        const templates = [
+            "Вивчити вірш",
+            "Вивчити слова",
+            "Виконати вправу № , с.",
+            "Виконати вправу в зошиті",
+            "Виконати діагностичну роботу",
+            "Виконати контрольну роботу",
+            "Виконати практичну роботу",
+            "Виконати проектну роботу в групі",
+            "Виконати тестове завдання",
+            "Виконати творче завдання",
+            "Виконати інтерактивну вправу",
+            "Дописати вправу в зошиті",
+            "Заповнити таблицю",
+			"Знайти в інтернеті",
+            "Намалювати малюнок на тему",
+            "Написати конспект",
+            "Написати листа про",
+            "Опрацювати § , на с.",
+            "Опрацювати текст",
+            "Оформити схему",
+            "Підготувати відповіді на питання",
+            "Підготувати доповідь",
+            "Підготувати короткий переказ тексту",
+            "Підготувати презентацію за темою",
+            "Підготувати презентацію про",
+            "Підготувати реферат",
+            "Підготуватися до діагностичної роботи",
+            "Провести дослідження",
+            "Провести самооцінювання роботи",
+			"Прочитати § , с. ",
+            "Розв'язати задачу № , с.",
+            "Скласти діалог",
+            "Скласти план до теми",
+            "Скласти повідомлення про",
+            "Скласти питання до тексту",
+            "Створити проєкт на тему"
+        ];
+
+        // Ініціалізація автодоповнення для кожного поля
+        setupAutocomplete('input1', 'suggestions1');
+        setupAutocomplete('input2', 'suggestions2');
+
+        function setupAutocomplete(inputId, suggestionsId) {
+            const input = document.getElementById(inputId);
+            const suggestionsContainer = document.getElementById(suggestionsId);
+            let selectedIndex = -1;
+            let currentSuggestions = [];
+
+            input.addEventListener('input', () => {
+                const value = input.value.trim();
+                selectedIndex = -1;
+
+                if (value === '') {
+                    suggestionsContainer.classList.remove('show');
+                    return;
+                }
+
+                // Фільтруємо шаблони, що ПОЧИНАЮТЬСЯ з введеного тексту (нечутливо до регістру)
+                currentSuggestions = templates.filter(template =>
+                    template.toLowerCase().startsWith(value.toLowerCase())
+                );
+
+                if (currentSuggestions.length === 0) {
+                    suggestionsContainer.classList.remove('show');
+                    return;
+                }
+
+                renderSuggestions();
+                suggestionsContainer.classList.add('show');
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (!suggestionsContainer.classList.contains('show')) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedIndex = Math.min(selectedIndex + 1, currentSuggestions.length - 1);
+                    updateSelected();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedIndex = Math.max(selectedIndex - 1, -1);
+                    updateSelected();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedIndex >= 0) {
+                        selectSuggestion(currentSuggestions[selectedIndex]);
+                    }
+                    suggestionsContainer.classList.remove('show');
+                } else if (e.key === 'Escape') {
+                    suggestionsContainer.classList.remove('show');
+                }
+            });
+
+            function renderSuggestions() {
+                suggestionsContainer.innerHTML = '';
+                currentSuggestions.forEach((suggestion, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = suggestion;
+                    if (index === selectedIndex) div.classList.add('selected');
+                    div.addEventListener('click', () => {
+                        selectSuggestion(suggestion);
+                        suggestionsContainer.classList.remove('show');
+                    });
+                    suggestionsContainer.appendChild(div);
+                });
+            }
+
+            function updateSelected() {
+                const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+
+            function selectSuggestion(suggestion) {
+                input.value = suggestion;
+                input.focus();
+            }
+
+            // При втраті фокусу — приховати список (але з невеликою затримкою, щоб дозволити клік)
+            input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    suggestionsContainer.classList.remove('show');
+                }, 150);
+            });
+        }
+
+        // --- Решта функцій (без змін) ---
+        function generateHomework() {
+            const input1 = document.getElementById('input1').value.trim();
+            const input2 = document.getElementById('input2').value.trim();
+            
+            let parts = [];
+            
+            if (input1) {
+                parts.push(`${input1} (І)`);
+            }
+            if (input2) {
+                parts.push(`${input2} (ІІ)`);
+            }
+            
+            if (parts.length === 0) {
+                alert('Будь ласка, заповніть хоча б одне поле!');
+                return;
+            }
+            
+            const homework = parts.join('; ') + '.';
+            
+            document.getElementById('resultText').textContent = homework;
+            document.getElementById('result').classList.add('show');
+        }
+        
+        function copyToClipboard() {
+            const resultText = document.getElementById('resultText').textContent;
+            
+            if (!resultText) {
+                alert('Спочатку створіть завдання!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(resultText).then(() => {
+                const notification = document.getElementById('notification');
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }).catch(err => {
+                alert('Помилка копіювання: ' + err);
+            });
+        }
+        
+        function clearAll() {
+            document.getElementById('input1').value = '';
+            document.getElementById('input2').value = '';
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('resultText').textContent = '';
+            // Приховуємо обидва списки
+            document.getElementById('suggestions1').classList.remove('show');
+            document.getElementById('suggestions2').classList.remove('show');
+        }
+        
+        // Enter для швидкого переходу
+        document.getElementById('input1').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('suggestions1').classList.contains('show')) {
+                document.getElementById('input2').focus();
+            }
+        });
+        
+        document.getElementById('input2').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('suggestions2').classList.contains('show')) {
+                generateHomework();
+            }
+        });
+    </script>
+</body>
+</html>
