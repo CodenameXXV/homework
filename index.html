@@ -219,7 +219,7 @@
             <label for="input1">Рівень 1:</label>
             <div class="input-wrapper">
                 <input type="text" id="input1" placeholder="Почніть вводити завдання..." spellcheck="true" lang="uk">
-                <button class="voice-btn" onclick="startVoiceInput('input1')" title="Голосове введення">🎤</button>
+                <button class="voice-btn" onclick="startVoiceInput('input1', this)" title="Голосове введення">🎤</button>
             </div>
             <div class="suggestions" id="suggestions1"></div>
         </div>
@@ -228,7 +228,7 @@
             <label for="input2">Рівень 2:</label>
             <div class="input-wrapper">
                 <input type="text" id="input2" placeholder="Почніть вводити завдання..." spellcheck="true" lang="uk">
-                <button class="voice-btn" onclick="startVoiceInput('input2')" title="Голосове введення">🎤</button>
+                <button class="voice-btn" onclick="startVoiceInput('input2', this)" title="Голосове введення">🎤</button>
             </div>
             <div class="suggestions" id="suggestions2"></div>
         </div>
@@ -247,6 +247,63 @@
     <div class="notification" id="notification">Скопійовано!</div>
     
     <script>
+        // Перевірка підтримки голосового введення
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let currentInputId = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'uk-UA';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (currentInputId) {
+                    const input = document.getElementById(currentInputId);
+                    input.value = transcript;
+                    // Тригеримо подію input для автодоповнення
+                    input.dispatchEvent(new Event('input'));
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Помилка розпізнавання:', event.error);
+                if (event.error === 'no-speech') {
+                    alert('Не вдалося розпізнати мовлення. Спробуйте ще раз.');
+                } else if (event.error === 'not-allowed') {
+                    alert('Доступ до мікрофона заблоковано. Дозвольте використання мікрофона в налаштуваннях браузера.');
+                }
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                stopRecording();
+            };
+        }
+
+        function startVoiceInput(inputId, btn) {
+            if (!SpeechRecognition) {
+                alert('Ваш браузер не підтримує голосове введення. Спробуйте використати Chrome або Edge.');
+                return;
+            }
+
+            currentInputId = inputId;
+            
+            if (btn.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                btn.classList.add('recording');
+                recognition.start();
+            }
+        }
+
+        function stopRecording() {
+            const voiceBtns = document.querySelectorAll('.voice-btn');
+            voiceBtns.forEach(btn => btn.classList.remove('recording'));
+        }
+
         // Список шаблонів (ваші, в алфавітному порядку)
         const templates = [
             "Вивчити вірш",
