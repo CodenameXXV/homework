@@ -234,7 +234,7 @@
         </div>
         
         <div class="button-group">
-            <button class="generate-btn" onclick="generateHomework()">Створити завдання</button>
+            <button class="generate-btn" onclick="generateHomework()">Оформити завдання</button>
             <button class="copy-btn" onclick="copyToClipboard()">📋 Копіювати</button>
             <button class="clear-btn" onclick="clearAll()">🗑️ Очистити</button>
         </div>
@@ -247,7 +247,6 @@
     <div class="notification" id="notification">Скопійовано!</div>
     
     <script>
-        // Перевірка підтримки голосового введення
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let currentInputId = null;
@@ -255,66 +254,144 @@
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'uk-UA';
-            recognition.continuous = true;  // Дозволяє тривале прослуховування
-            recognition.interimResults = true;  // Показує проміжні результати
+            recognition.continuous = true;
+            recognition.interimResults = true;
             recognition.maxAlternatives = 1;
             
             let finalTranscript = '';
+            let interimTranscript = '';
             let stopTimeout = null;
 
             recognition.onresult = (event) => {
+                interimTranscript = '';
                 finalTranscript = '';
-                
-                // Збираємо всі фінальні результати
+
                 for (let i = 0; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
                     }
                 }
-                
-                // Очищаємо попередній таймер
+
+                let fullTranscript = (finalTranscript + interimTranscript).trim();
+
                 if (stopTimeout) {
                     clearTimeout(stopTimeout);
                 }
-                
-                // Автоматично зупиняємо через 2 секунди після останнього слова
+
                 stopTimeout = setTimeout(() => {
                     recognition.stop();
-                }, 2000);
-                
-                // Обробляємо текст
-                let transcript = finalTranscript.trim();
-                
-                // Замінюємо голосові команди на символи
-                transcript = transcript
+                }, 4000);
+
+                // === 1. ГОЛОСОВІ КОМАНДИ → СИМВОЛИ ===
+                fullTranscript = fullTranscript
                     .replace(/\s*кома\s*/gi, ', ')
                     .replace(/\s*крапка\s*/gi, '. ')
                     .replace(/\s*знак питання\s*/gi, '? ')
                     .replace(/\s*знак оклику\s*/gi, '! ')
                     .replace(/\s*двокрапка\s*/gi, ': ')
                     .replace(/\s*крапка з комою\s*/gi, '; ')
-                    .replace(/\s*тире\s*/gi, ' - ')
+                    .replace(/\s*тире\s*/gi, ' — ')
                     .replace(/\s*дефіс\s*/gi, '-')
                     .replace(/\s*дужка відкрита\s*/gi, ' (')
                     .replace(/\s*дужка закрита\s*/gi, ') ')
                     .replace(/\s*лапки\s*/gi, '"')
-                    .replace(/\s*номер\s*/gi, '№')
-                    .replace(/\s*параграф\s*/gi, '§');
-                
-                // Робимо першу букву великою
-                if (transcript.length > 0) {
-                    transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                    .replace(/\s*параграф\s*/gi, ' §')
+                    .replace(/\s*номер\s*/gi, ' №');
+
+                // Пробіл після § і №
+                fullTranscript = fullTranscript
+                    .replace(/§(\S)/g, '§ $1')
+                    .replace(/№(\S)/g, '№ $1');
+
+                // === 2. ЧИСЛА СЛОВАМИ → ЦИФРИ ===
+                function wordsToNumbers(text) {
+                    const numberMap = {
+                        'нуль': '0',
+                        'один': '1', 'одна': '1', 'одну': '1',
+                        'два': '2', 'дві': '2',
+                        'три': '3',
+                        'чотири': '4',
+                        'п\'ять': '5',
+                        'шість': '6',
+                        'сім': '7',
+                        'вісім': '8',
+                        'дев\'ять': '9',
+                        'десять': '10',
+                        'одинадцять': '11',
+                        'дванадцять': '12',
+                        'тринадцять': '13',
+                        'чотирнадцять': '14',
+                        'п\'ятнадцять': '15',
+                        'шістнадцять': '16',
+                        'сімнадцять': '17',
+                        'вісімнадцять': '18',
+                        'дев\'ятнадцять': '19',
+                        'двадцять': '20',
+                        'тридцять': '30',
+                        'сорок': '40',
+                        'п\'ятдесят': '50',
+                        'шістдесят': '60',
+                        'сімдесят': '70',
+                        'вісімдесят': '80',
+                        'дев\'яносто': '90',
+                        'сто': '100'
+                    };
+
+                    let result = text;
+                    const sortedWords = Object.keys(numberMap).sort((a, b) => b.length - a.length);
+                    for (const word of sortedWords) {
+                        const escapedWord = word.replace(/'/g, "\\'");
+                        const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+                        result = result.replace(regex, numberMap[word]);
+                    }
+
+                    // Об'єднуємо складені числа (напр. "двадцять п'ять" → "25")
+                    result = result.replace(/\b(100|90|80|70|60|50|40|30|20)\s+(\d{1,2})\b/g, (match, tens, ones) => {
+                        const t = parseInt(tens, 10);
+                        const o = parseInt(ones, 10);
+                        if (o < 10) {
+                            return (t + o).toString();
+                        }
+                        return match;
+                    });
+
+                    return result;
                 }
-                
-                // Робимо велику букву після крапки, знака питання та оклику
-                transcript = transcript.replace(/([.!?]\s+)([а-яіїєґ])/g, (match, p1, p2) => {
+
+                fullTranscript = wordsToNumbers(fullTranscript);
+
+                // === 3. СКОРОЧЕННЯ: ВПРАВА, СТОРІНКА ===
+                fullTranscript = fullTranscript
+                    .replace(/вправу/gi, 'Впр.')
+                    .replace(/вправа/gi, 'Впр.')
+                    .replace(/вправи/gi, 'Впр.')
+                    .replace(/сторінку/gi, 'с.')
+                    .replace(/сторінці/gi, 'с.')
+                    .replace(/сторінка/gi, 'с.');
+
+                // === 4. ФІНАЛЬНЕ ФОРМАТУВАННЯ ===
+                fullTranscript = fullTranscript.replace(/\s+/g, ' ').trim();
+
+                if (fullTranscript.length > 0) {
+                    fullTranscript = fullTranscript.charAt(0).toUpperCase() + fullTranscript.slice(1);
+                }
+
+                // Робимо велику букву після крапки, але НЕ після скорочень Впр. та с.
+                fullTranscript = fullTranscript.replace(/([.!?]\s+)([а-яіїєґ])/g, (match, p1, p2) => {
+                    // Перевіряємо, чи це не скорочення Впр. або с.
+                    const beforeMatch = fullTranscript.substring(0, fullTranscript.indexOf(match));
+                    if (beforeMatch.endsWith('Впр.') || beforeMatch.endsWith('с.')) {
+                        return match; // Не змінюємо регістр
+                    }
                     return p1 + p2.toUpperCase();
                 });
-                
-                if (currentInputId && transcript) {
+
+                if (currentInputId) {
                     const input = document.getElementById(currentInputId);
-                    input.value = transcript;
-                    // Тригеримо подію input для автодоповнення
+                    input.value = fullTranscript;
                     input.dispatchEvent(new Event('input'));
                 }
             };
@@ -345,6 +422,7 @@
 
             currentInputId = inputId;
             finalTranscript = '';
+            interimTranscript = '';
             
             if (btn.classList.contains('recording')) {
                 recognition.stop();
@@ -359,7 +437,6 @@
             voiceBtns.forEach(btn => btn.classList.remove('recording'));
         }
 
-        // Список шаблонів (ваші, в алфавітному порядку)
         const templates = [
             "Вивчити вірш",
             "Вивчити слова",
@@ -374,7 +451,7 @@
             "Виконати інтерактивну вправу",
             "Дописати вправу в зошиті",
             "Заповнити таблицю",
-			"Знайти в інтернеті",
+            "Знайти в інтернеті",
             "Намалювати малюнок на тему",
             "Написати конспект",
             "Написати листа про",
@@ -390,7 +467,7 @@
             "Підготуватися до діагностичної роботи",
             "Провести дослідження",
             "Провести самооцінювання роботи",
-			"Прочитати § , с. ",
+            "Прочитати § , с. ",
             "Розв'язати задачу № , с.",
             "Скласти діалог",
             "Скласти план до теми",
@@ -399,7 +476,6 @@
             "Створити проєкт на тему"
         ];
 
-        // Ініціалізація автодоповнення для кожного поля
         setupAutocomplete('input1', 'suggestions1');
         setupAutocomplete('input2', 'suggestions2');
 
@@ -418,7 +494,6 @@
                     return;
                 }
 
-                // Фільтруємо шаблони, що ПОЧИНАЮТЬСЯ з введеного тексту (нечутливо до регістру)
                 currentSuggestions = templates.filter(template =>
                     template.toLowerCase().startsWith(value.toLowerCase())
                 );
@@ -485,7 +560,6 @@
                 input.focus();
             }
 
-            // При втраті фокусу — приховати список (але з невеликою затримкою, щоб дозволити клік)
             input.addEventListener('blur', () => {
                 setTimeout(() => {
                     suggestionsContainer.classList.remove('show');
@@ -493,7 +567,6 @@
             });
         }
 
-        // --- Решта функцій ---
         function generateHomework() {
             const input1 = document.getElementById('input1').value.trim();
             const input2 = document.getElementById('input2').value.trim();
@@ -543,12 +616,10 @@
             document.getElementById('input2').value = '';
             document.getElementById('result').classList.remove('show');
             document.getElementById('resultText').textContent = '';
-            // Приховуємо обидва списки
             document.getElementById('suggestions1').classList.remove('show');
             document.getElementById('suggestions2').classList.remove('show');
         }
         
-        // Enter для швидкого переходу
         document.getElementById('input1').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('suggestions1').classList.contains('show')) {
                 document.getElementById('input2').focus();
