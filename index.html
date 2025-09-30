@@ -259,7 +259,34 @@
             recognition.interimResults = false;
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
+                let transcript = event.results[0][0].transcript;
+                
+                // Замінюємо голосові команди на символи
+                transcript = transcript
+                    .replace(/\s*кома\s*/gi, ', ')
+                    .replace(/\s*крапка\s*/gi, '. ')
+                    .replace(/\s*знак питання\s*/gi, '? ')
+                    .replace(/\s*знак оклику\s*/gi, '! ')
+                    .replace(/\s*двокрапка\s*/gi, ': ')
+                    .replace(/\s*крапка з комою\s*/gi, '; ')
+                    .replace(/\s*тире\s*/gi, ' - ')
+                    .replace(/\s*дефіс\s*/gi, '-')
+                    .replace(/\s*дужка відкрита\s*/gi, ' (')
+                    .replace(/\s*дужка закрита\s*/gi, ') ')
+                    .replace(/\s*лапки\s*/gi, '"')
+                    .replace(/\s*номер\s*/gi, '№')
+                    .replace(/\s*параграф\s*/gi, '§');
+                
+                // Робимо першу букву великою
+                if (transcript.length > 0) {
+                    transcript = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                }
+                
+                // Робимо велику букву після крапки, знака питання та оклику
+                transcript = transcript.replace(/([.!?]\s+)([а-яіїєґ])/g, (match, p1, p2) => {
+                    return p1 + p2.toUpperCase();
+                });
+                
                 if (currentInputId) {
                     const input = document.getElementById(currentInputId);
                     input.value = transcript;
