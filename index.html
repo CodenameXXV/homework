@@ -255,11 +255,35 @@
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'uk-UA';
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;  // Дозволяє тривале прослуховування
+            recognition.interimResults = true;  // Показує проміжні результати
+            recognition.maxAlternatives = 1;
+            
+            let finalTranscript = '';
+            let stopTimeout = null;
 
             recognition.onresult = (event) => {
-                let transcript = event.results[0][0].transcript;
+                finalTranscript = '';
+                
+                // Збираємо всі фінальні результати
+                for (let i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+                
+                // Очищаємо попередній таймер
+                if (stopTimeout) {
+                    clearTimeout(stopTimeout);
+                }
+                
+                // Автоматично зупиняємо через 2 секунди після останнього слова
+                stopTimeout = setTimeout(() => {
+                    recognition.stop();
+                }, 2000);
+                
+                // Обробляємо текст
+                let transcript = finalTranscript.trim();
                 
                 // Замінюємо голосові команди на символи
                 transcript = transcript
@@ -287,7 +311,7 @@
                     return p1 + p2.toUpperCase();
                 });
                 
-                if (currentInputId) {
+                if (currentInputId && transcript) {
                     const input = document.getElementById(currentInputId);
                     input.value = transcript;
                     // Тригеримо подію input для автодоповнення
@@ -306,6 +330,9 @@
             };
 
             recognition.onend = () => {
+                if (stopTimeout) {
+                    clearTimeout(stopTimeout);
+                }
                 stopRecording();
             };
         }
@@ -317,6 +344,7 @@
             }
 
             currentInputId = inputId;
+            finalTranscript = '';
             
             if (btn.classList.contains('recording')) {
                 recognition.stop();
