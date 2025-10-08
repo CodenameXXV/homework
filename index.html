@@ -380,6 +380,9 @@
 
                 fullTranscript = wordsToNumbers(fullTranscript);
 
+                // Зчитуємо стан перемикача скорочень
+                const shouldAbbreviate = document.getElementById('abbrevToggle')?.checked !== false;
+
                 // === 3. СКОРОЧЕННЯ: ВПРАВА, СТОРІНКА (залежать від галочки) ===
                 if (shouldAbbreviate) {
                     fullTranscript = fullTranscript
