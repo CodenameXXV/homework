@@ -28,6 +28,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 800px;
             width: 100%;
+            text-align: left;
         }
         
         h1 {
@@ -40,6 +41,15 @@
         .input-group {
             margin-bottom: 20px;
             position: relative;
+        }
+        
+        /* Ensure checkbox appears before text on one line */
+        .toggle-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            column-gap: 8px;
+            justify-content: start;
         }
         
         label {
@@ -233,6 +243,13 @@
             <div class="suggestions" id="suggestions2"></div>
         </div>
         
+        <div class="input-group">
+            <label class="toggle-row">
+                <input type="checkbox" id="abbrevToggle" checked>
+                Скорочення підчас голосового введення
+            </label>
+        </div>
+        
         <div class="button-group">
             <button class="generate-btn" onclick="generateHomework()">Оформити завдання</button>
             <button class="copy-btn" onclick="copyToClipboard()">📋 Копіювати</button>
@@ -285,7 +302,7 @@
                     recognition.stop();
                 }, 4000);
 
-                // === 1. ГОЛОСОВІ КОМАНДИ → СИМВОЛИ ===
+                // === 1. ГОЛОСОВІ КОМАНДИ → СИМВОЛИ (базові, не залежать від галочки) ===
                 fullTranscript = fullTranscript
                     .replace(/\s*кома\s*/gi, ', ')
                     .replace(/\s*крапка\s*/gi, '. ')
@@ -297,16 +314,16 @@
                     .replace(/\s*дефіс\s*/gi, '-')
                     .replace(/\s*дужка відкрита\s*/gi, ' (')
                     .replace(/\s*дужка закрита\s*/gi, ') ')
-                    .replace(/\s*лапки\s*/gi, '"')
-                    .replace(/\s*параграф\s*/gi, ' §')
-                    .replace(/\s*номер\s*/gi, ' №');
+                    .replace(/\s*лапки\s*/gi, '"');
 
-                // Пробіл після § і №
+                // Параграф і номер завжди скорочуємо (незалежно від галочки)
                 fullTranscript = fullTranscript
+                    .replace(/\s*параграф\s*/gi, ' § ')
+                    .replace(/\s*номер\s*/gi, ' № ')
                     .replace(/§(\S)/g, '§ $1')
                     .replace(/№(\S)/g, '№ $1');
 
-                // === 2. ЧИСЛА СЛОВАМИ → ЦИФРИ ===
+                // === 2. ЧИСЛА СЛОВАМИ → ЦИФРИ (незалежно від галочки) ===
                 function wordsToNumbers(text) {
                     const numberMap = {
                         'нуль': '0',
@@ -363,14 +380,16 @@
 
                 fullTranscript = wordsToNumbers(fullTranscript);
 
-                // === 3. СКОРОЧЕННЯ: ВПРАВА, СТОРІНКА ===
-                fullTranscript = fullTranscript
-                    .replace(/вправу/gi, 'Впр.')
-                    .replace(/вправа/gi, 'Впр.')
-                    .replace(/вправи/gi, 'Впр.')
-                    .replace(/сторінку/gi, 'с.')
-                    .replace(/сторінці/gi, 'с.')
-                    .replace(/сторінка/gi, 'с.');
+                // === 3. СКОРОЧЕННЯ: ВПРАВА, СТОРІНКА (залежать від галочки) ===
+                if (shouldAbbreviate) {
+                    fullTranscript = fullTranscript
+                        .replace(/вправу/gi, 'Впр.')
+                        .replace(/вправа/gi, 'Впр.')
+                        .replace(/вправи/gi, 'Впр.')
+                        .replace(/сторінку/gi, 'с.')
+                        .replace(/сторінці/gi, 'с.')
+                        .replace(/сторінка/gi, 'с.');
+                }
 
                 // === 4. ФІНАЛЬНЕ ФОРМАТУВАННЯ ===
                 fullTranscript = fullTranscript.replace(/\s+/g, ' ').trim();
