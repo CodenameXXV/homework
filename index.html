@@ -29,6 +29,7 @@
             max-width: 800px;
             width: 100%;
             text-align: left;
+            position: relative;
         }
         
         h1 {
@@ -219,6 +220,22 @@
         .notification.show {
             opacity: 1;
         }
+
+        .author {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #777;
+        }
+
+        .author a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .author a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -258,6 +275,10 @@
         
         <div class="result" id="result">
             <div class="result-text" id="resultText"></div>
+        </div>
+
+        <div class="author">
+            Автор: <a href="https://codenamexxv.github.io/teacher/" target="_blank">Ігор Шуляк</a>
         </div>
     </div>
     
