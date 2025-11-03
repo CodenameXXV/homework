@@ -668,6 +668,8 @@
             if (btn.classList.contains('recording')) {
                 recognition.stop();
             } else {
+                // Switch icon to stop and start blinking while recording
+                btn.textContent = '⏹';
                 btn.classList.add('recording');
                 recognition.start();
             }
@@ -675,7 +677,11 @@
 
         function stopRecording() {
             const voiceBtns = document.querySelectorAll('.voice-btn');
-            voiceBtns.forEach(btn => btn.classList.remove('recording'));
+            voiceBtns.forEach(btn => {
+                btn.classList.remove('recording');
+                // Revert icon back to microphone when not recording
+                btn.textContent = '🎤';
+            });
         }
 
         const templates = [
