@@ -4,195 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор домашнього завдання</title>
+    <!-- Шрифти та іконки -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css  ">
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* === Універсальна темно-скляна шапка === */
+        .universal-header {
+            font-family: 'Inter', sans-serif;
+            --header-bg: rgba(15, 23, 42, 0.75);
+            --header-border: rgba(0, 136, 204, 0.25);
+            --text-color: #cbd5e1;
+            --hover-bg: rgba(0, 136, 204, 0.25);
+            --hover-color: #60a5fa;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 100%;
-            text-align: left;
-            position: relative;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 28px;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        
-        /* Ensure checkbox appears before text on one line */
-        .toggle-row {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: center;
-            column-gap: 8px;
-            justify-content: start;
-        }
-        
-        label {
-            display: block;
-            color: #555;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 50px 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
-        
-        .voice-btn {
-            position: absolute;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: background 0.3s;
-            width: auto;
-            flex: none;
-        }
-        
-        .voice-btn:hover {
-            background: #f0f0f0;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .voice-btn.recording {
-            color: #f44336;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .suggestions {
-            position: absolute;
-            top: 100%;
+
+        .universal-header .top-bar {
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--header-border);
+            padding: 12px 0;
+            position: fixed;
+            top: 0;
             left: 0;
             right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
         }
-        
-        .suggestions.show {
-            display: block;
-        }
-        
-        .suggestion-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-        }
-        
-        .suggestion-item:hover,
-        .suggestion-item.selected {
-            background: #eef4ff;
-        }
-        
-        .button-group {
+
+        .universal-header .top-bar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
             display: flex;
-            gap: 10px;
-            margin-top: 25px;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
         }
-        
-        button {
-            flex: 1;
-            padding: 14px;
-            border: none;
+
+        .universal-header .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 6px;
+        }
+
+        .universal-header .nav-item {
+            display: flex;
+        }
+
+        .universal-header .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            color: var(--text-color);
+            text-decoration: none;
             border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .universal-header .nav-link:hover {
+            background: var(--hover-bg);
+            color: var(--hover-color);
+        }
+
+        .universal-header .nav-link i {
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+        /* Мобільні пристрої */
+        @media (max-width: 768px) {
+            .universal-header .top-bar-content {
+                padding: 0 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .universal-header .nav-link {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .universal-header .nav-link i {
+                font-size: 14px;
+            }
         }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .generate-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .Ось ваш HTML-код з **доданою iframe-шапкою** на самому початку — точно такою ж, як у попередніх ваших проєктах:
 
-- iframe завантажує `https://codenamexxv.github.io/webmenu/`
-- Висота — `55px`, ширина — `100%`
-- Без рамки, без відступу зверху
-- Посилання на автора очищене від зайвих пробілів
-
----
-
-### ✅ Оновлений повний код:
-
-```html
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор домашнього завдання</title>
-    <style>
+        /* === Основний стиль сторінки === */
         * {
             margin: 0;
             padding: 0;
@@ -207,6 +109,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            padding-top: 80px; /* відступ під фіксовану шапку */
         }
         
         .container {
@@ -218,7 +121,6 @@
             width: 100%;
             text-align: left;
             position: relative;
-            margin-top: 55px; /* Відступ під iframe */
         }
         
         h1 {
@@ -233,7 +135,6 @@
             position: relative;
         }
         
-        /* Ensure checkbox appears before text on one line */
         .toggle-row {
             display: grid;
             grid-template-columns: auto 1fr;
@@ -281,8 +182,6 @@
         
         .voice-btn:hover {
             background: #f0f0f0;
-            transform: none;
-            box-shadow: none;
         }
         
         .voice-btn.recording {
@@ -428,15 +327,44 @@
     </style>
 </head>
 <body>
-    <!-- iframe-шапка -->
-	<iframe 
-		src="https://codenamexxv.github.io/webmenu/"
-		style="border: none; width: 100%; height: 55px; display: block; position: fixed; top: 0; left: 0; z-index: 100;"
-		title="Навігаційна панель"
-		scrolling="no"
-		frameborder="0">
-	</iframe>
 
+    <!-- === Темно-скляна шапка === -->
+    <div class="universal-header">
+        <div class="top-bar">
+            <div class="top-bar-content">
+                <nav>
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="https://codenamexxv.github.io/teacher/" target="_blank" rel="noopener noreferrer" class="nav-link">
+                                <i class="fas fa-home"></i>
+                                <span>Головна</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://codenamexxv.github.io/base/" target="_blank" rel="noopener noreferrer" class="nav-link">
+                                <i class="fas fa-book"></i>
+                                <span>База знань</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://t.me/ittchr" target="_blank" rel="noopener noreferrer" class="nav-link">
+                                <i class="fab fa-telegram"></i>
+                                <span>Блог</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="https://codenamexxv.github.io/ai.github.io/" target="_blank" rel="noopener noreferrer" class="nav-link">
+                                <i class="fas fa-tools"></i>
+                                <span>Підбірка ШІ</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Основний контент === -->
     <div class="container">
         <h1>✅ Запис домашнього завдання</h1>
         
@@ -521,7 +449,7 @@
                     recognition.stop();
                 }, 4000);
 
-                // === 1. ГОЛОСОВІ КОМАНДИ → СИМВОЛИ (базові, не залежать від галочки) ===
+                // === 1. ГОЛОСОВІ КОМАНДИ → СИМВОЛИ ===
                 fullTranscript = fullTranscript
                     .replace(/\s*кома\s*/gi, ', ')
                     .replace(/\s*крапка\s*/gi, '. ')
@@ -535,14 +463,13 @@
                     .replace(/\s*дужка закрита\s*/gi, ') ')
                     .replace(/\s*лапки\s*/gi, '"');
 
-                // Параграф і номер завжди скорочуємо (незалежно від галочки)
                 fullTranscript = fullTranscript
                     .replace(/\s*параграф\s*/gi, ' § ')
                     .replace(/\s*номер\s*/gi, ' № ')
                     .replace(/§(\S)/g, '§ $1')
                     .replace(/№(\S)/g, '№ $1');
 
-                // === 2. ЧИСЛА СЛОВАМИ → ЦИФРИ (незалежно від галочки) ===
+                // === 2. ЧИСЛА СЛОВАМИ → ЦИФРИ ===
                 function wordsToNumbers(text) {
                     const numberMap = {
                         'нуль': '0',
@@ -584,7 +511,6 @@
                         result = result.replace(regex, numberMap[word]);
                     }
 
-                    // Об'єднуємо складені числа (напр. "двадцять п'ять" → "25")
                     result = result.replace(/\b(100|90|80|70|60|50|40|30|20)\s+(\d{1,2})\b/g, (match, tens, ones) => {
                         const t = parseInt(tens, 10);
                         const o = parseInt(ones, 10);
@@ -599,10 +525,8 @@
 
                 fullTranscript = wordsToNumbers(fullTranscript);
 
-                // Зчитуємо стан перемикача скорочень
                 const shouldAbbreviate = document.getElementById('abbrevToggle')?.checked !== false;
 
-                // === 3. СКОРОЧЕННЯ: ВПРАВА, СТОРІНКА (залежать від галочки) ===
                 if (shouldAbbreviate) {
                     fullTranscript = fullTranscript
                         .replace(/вправу/gi, 'Впр.')
@@ -613,19 +537,16 @@
                         .replace(/сторінка/gi, 'с.');
                 }
 
-                // === 4. ФІНАЛЬНЕ ФОРМАТУВАННЯ ===
                 fullTranscript = fullTranscript.replace(/\s+/g, ' ').trim();
 
                 if (fullTranscript.length > 0) {
                     fullTranscript = fullTranscript.charAt(0).toUpperCase() + fullTranscript.slice(1);
                 }
 
-                // Робимо велику букву після крапки, але НЕ після скорочень Впр. та с.
                 fullTranscript = fullTranscript.replace(/([.!?]\s+)([а-яіїєґ])/g, (match, p1, p2) => {
-                    // Перевіряємо, чи це не скорочення Впр. або с.
                     const beforeMatch = fullTranscript.substring(0, fullTranscript.indexOf(match));
                     if (beforeMatch.endsWith('Впр.') || beforeMatch.endsWith('с.')) {
-                        return match; // Не змінюємо регістр
+                        return match;
                     }
                     return p1 + p2.toUpperCase();
                 });
@@ -668,7 +589,6 @@
             if (btn.classList.contains('recording')) {
                 recognition.stop();
             } else {
-                // Switch icon to stop and start blinking while recording
                 btn.textContent = '⏹';
                 btn.classList.add('recording');
                 recognition.start();
@@ -679,7 +599,6 @@
             const voiceBtns = document.querySelectorAll('.voice-btn');
             voiceBtns.forEach(btn => {
                 btn.classList.remove('recording');
-                // Revert icon back to microphone when not recording
                 btn.textContent = '🎤';
             });
         }
@@ -849,7 +768,6 @@
             navigator.clipboard.writeText(resultText).then(() => {
                 const notification = document.getElementById('notification');
                 notification.classList.add('show');
-                
                 setTimeout(() => {
                     notification.classList.remove('show');
                 }, 2000);
